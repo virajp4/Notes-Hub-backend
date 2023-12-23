@@ -45,6 +45,16 @@ function deleteSubjects(yr) {
     });
 }
 
+const adminMiddleware = (req, res, next) => {
+  const { username, password } = req.query;
+
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    next();
+  } else {
+    res.status(401).json({ error: "Unauthorized access" });
+  }
+};
+
 app.get("/subjects", async (req, res) => {
   const yr = req.query.year;
   Subject.find({ year: yr })
@@ -57,7 +67,7 @@ app.get("/subjects", async (req, res) => {
     });
 });
 
-app.post("/subjects/add", async (req, res) => {
+app.post("/subjects/add", adminMiddleware, async (req, res) => {
   const subject = new Subject(req.body);
   subject
     .save()
@@ -71,7 +81,7 @@ app.post("/subjects/add", async (req, res) => {
     });
 });
 
-app.delete("/subjects/:id", async (req, res) => {
+app.delete("/subjects/:id", adminMiddleware, async (req, res) => {
   const id = req.params.id;
   await Subject.findByIdAndDelete(id);
 
